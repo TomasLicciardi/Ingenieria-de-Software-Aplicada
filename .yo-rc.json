@@ -1,0 +1,19 @@
+{
+  "generator-jhipster": {
+    "applicationType": "monolith",
+    "authenticationType": "oauth2",
+    "baseName": "blog",
+    "buildTool": "maven",
+    "cacheProvider": "ehcache",
+    "clientFramework": "angular",
+    "entities": ["Blog", "Post"],
+    "jhipsterVersion": "8.11.0",
+    "languages": ["en"],
+    "lastLiquibaseTimestamp": 1747692266000,
+    "nativeLanguage": "en",
+    "packageName": "com.jhipster.demo.blog",
+    "prodDatabaseType": "mysql",
+    "skipUserManagement": true,
+    "testFrameworks": ["cypress"]
+  }
+}
