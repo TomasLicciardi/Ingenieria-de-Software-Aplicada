@@ -190,14 +190,14 @@ info:
 jhipster:
   clientApp:
     name: 'blogApp'
-  # By default CORS is disabled. Uncomment to enable.
-  # cors:
-  #   allowed-origins: "http://localhost:8100,http://localhost:9000"
-  #   allowed-methods: "*"
-  #   allowed-headers: "*"
-  #   exposed-headers: "Authorization,Link,X-Total-Count,X-${jhipster.clientApp.name}-alert,X-${jhipster.clientApp.name}-error,X-${jhipster.clientApp.name}-params"
-  #   allow-credentials: true
-  #   max-age: 1800
+  # Habilitamos CORS para permitir peticiones desde la PWA
+  cors:
+    allowed-origins: 'http://localhost:8100,http://localhost:9000,http://localhost:8095,https://localhost:8095,http://localhost:4200'
+    allowed-methods: '*'
+    allowed-headers: '*'
+    exposed-headers: 'Authorization,Link,X-Total-Count,X-${jhipster.clientApp.name}-alert,X-${jhipster.clientApp.name}-error,X-${jhipster.clientApp.name}-params'
+    allow-credentials: true
+    max-age: 3600
   mail:
     from: blog@localhost
   api-docs:
