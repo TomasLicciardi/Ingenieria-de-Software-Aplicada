@@ -1,19 +1,19 @@
 {
   "generator-jhipster": {
     "applicationType": "monolith",
-    "authenticationType": "oauth2",
+    "authenticationType": "jwt",
     "baseName": "blog",
     "buildTool": "maven",
     "cacheProvider": "ehcache",
     "clientFramework": "angular",
     "entities": ["Blog", "Post"],
     "jhipsterVersion": "8.11.0",
+    "jwtSecretKey": "MjFiNGQ5Mjg5NzQ1ZTllYjk5MDYxOWFlZWQ4ZDFjNWViM2NmNWY4MjNmNzkzMjRlYTYyZDMxN2IzYjEyMGUwOTgzZTYzMmY4NzcwMDc5NTAzOWIxNDJkODc3YTA0MmE0MzM3Y2M1NGQxZDJlZGZhOTE3YjljODE0OTQ0ZmZjODk=",
     "languages": ["en"],
-    "lastLiquibaseTimestamp": 1747692266000,
+    "lastLiquibaseTimestamp": 1747783816000,
     "nativeLanguage": "en",
     "packageName": "com.jhipster.demo.blog",
     "prodDatabaseType": "mysql",
-    "skipUserManagement": true,
     "testFrameworks": ["cypress"]
   }
 }

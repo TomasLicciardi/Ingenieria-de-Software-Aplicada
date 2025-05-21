@@ -5,7 +5,3 @@ services:
     extends:
       file: ./mysql.yml
       service: mysql
-  keycloak:
-    extends:
-      file: ./keycloak.yml
-      service: keycloak

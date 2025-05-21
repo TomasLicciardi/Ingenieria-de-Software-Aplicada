@@ -4,7 +4,6 @@ import static com.jhipster.demo.blog.domain.BlogAsserts.*;
 import static com.jhipster.demo.blog.web.rest.TestUtil.createUpdateProxyForBean;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -101,7 +100,7 @@ class BlogResourceIT {
         // Create the Blog
         var returnedBlog = om.readValue(
             restBlogMockMvc
-                .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(blog)))
+                .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(blog)))
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
@@ -126,7 +125,7 @@ class BlogResourceIT {
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restBlogMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(blog)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(blog)))
             .andExpect(status().isBadRequest());
 
         // Validate the Blog in the database
@@ -143,7 +142,7 @@ class BlogResourceIT {
         // Create the Blog, which fails.
 
         restBlogMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(blog)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(blog)))
             .andExpect(status().isBadRequest());
 
         assertSameRepositoryCount(databaseSizeBeforeTest);
@@ -159,7 +158,7 @@ class BlogResourceIT {
         // Create the Blog, which fails.
 
         restBlogMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(blog)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(blog)))
             .andExpect(status().isBadRequest());
 
         assertSameRepositoryCount(databaseSizeBeforeTest);
@@ -221,7 +220,6 @@ class BlogResourceIT {
         restBlogMockMvc
             .perform(
                 put(ENTITY_API_URL_ID, updatedBlog.getId())
-                    .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(om.writeValueAsBytes(updatedBlog))
             )
@@ -240,12 +238,7 @@ class BlogResourceIT {
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restBlogMockMvc
-            .perform(
-                put(ENTITY_API_URL_ID, blog.getId())
-                    .with(csrf())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(blog))
-            )
+            .perform(put(ENTITY_API_URL_ID, blog.getId()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(blog)))
             .andExpect(status().isBadRequest());
 
         // Validate the Blog in the database
@@ -262,7 +255,6 @@ class BlogResourceIT {
         restBlogMockMvc
             .perform(
                 put(ENTITY_API_URL_ID, longCount.incrementAndGet())
-                    .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(om.writeValueAsBytes(blog))
             )
@@ -280,7 +272,7 @@ class BlogResourceIT {
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restBlogMockMvc
-            .perform(put(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(blog)))
+            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(blog)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Blog in the database
@@ -304,7 +296,6 @@ class BlogResourceIT {
         restBlogMockMvc
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedBlog.getId())
-                    .with(csrf())
                     .contentType("application/merge-patch+json")
                     .content(om.writeValueAsBytes(partialUpdatedBlog))
             )
@@ -333,7 +324,6 @@ class BlogResourceIT {
         restBlogMockMvc
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedBlog.getId())
-                    .with(csrf())
                     .contentType("application/merge-patch+json")
                     .content(om.writeValueAsBytes(partialUpdatedBlog))
             )
@@ -353,12 +343,7 @@ class BlogResourceIT {
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restBlogMockMvc
-            .perform(
-                patch(ENTITY_API_URL_ID, blog.getId())
-                    .with(csrf())
-                    .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(blog))
-            )
+            .perform(patch(ENTITY_API_URL_ID, blog.getId()).contentType("application/merge-patch+json").content(om.writeValueAsBytes(blog)))
             .andExpect(status().isBadRequest());
 
         // Validate the Blog in the database
@@ -375,7 +360,6 @@ class BlogResourceIT {
         restBlogMockMvc
             .perform(
                 patch(ENTITY_API_URL_ID, longCount.incrementAndGet())
-                    .with(csrf())
                     .contentType("application/merge-patch+json")
                     .content(om.writeValueAsBytes(blog))
             )
@@ -393,7 +377,7 @@ class BlogResourceIT {
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restBlogMockMvc
-            .perform(patch(ENTITY_API_URL).with(csrf()).contentType("application/merge-patch+json").content(om.writeValueAsBytes(blog)))
+            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(om.writeValueAsBytes(blog)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Blog in the database
@@ -410,7 +394,7 @@ class BlogResourceIT {
 
         // Delete the blog
         restBlogMockMvc
-            .perform(delete(ENTITY_API_URL_ID, blog.getId()).with(csrf()).accept(MediaType.APPLICATION_JSON))
+            .perform(delete(ENTITY_API_URL_ID, blog.getId()).accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 
         // Validate the database contains one less item

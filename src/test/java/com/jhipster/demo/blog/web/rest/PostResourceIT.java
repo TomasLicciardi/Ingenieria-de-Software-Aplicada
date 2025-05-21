@@ -4,7 +4,6 @@ import static com.jhipster.demo.blog.domain.PostAsserts.*;
 import static com.jhipster.demo.blog.web.rest.TestUtil.createUpdateProxyForBean;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -106,7 +105,7 @@ class PostResourceIT {
         // Create the Post
         var returnedPost = om.readValue(
             restPostMockMvc
-                .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(post)))
+                .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(post)))
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
@@ -131,7 +130,7 @@ class PostResourceIT {
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restPostMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(post)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(post)))
             .andExpect(status().isBadRequest());
 
         // Validate the Post in the database
@@ -148,7 +147,7 @@ class PostResourceIT {
         // Create the Post, which fails.
 
         restPostMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(post)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(post)))
             .andExpect(status().isBadRequest());
 
         assertSameRepositoryCount(databaseSizeBeforeTest);
@@ -164,7 +163,7 @@ class PostResourceIT {
         // Create the Post, which fails.
 
         restPostMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(post)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(post)))
             .andExpect(status().isBadRequest());
 
         assertSameRepositoryCount(databaseSizeBeforeTest);
@@ -228,7 +227,6 @@ class PostResourceIT {
         restPostMockMvc
             .perform(
                 put(ENTITY_API_URL_ID, updatedPost.getId())
-                    .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(om.writeValueAsBytes(updatedPost))
             )
@@ -247,12 +245,7 @@ class PostResourceIT {
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restPostMockMvc
-            .perform(
-                put(ENTITY_API_URL_ID, post.getId())
-                    .with(csrf())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(post))
-            )
+            .perform(put(ENTITY_API_URL_ID, post.getId()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(post)))
             .andExpect(status().isBadRequest());
 
         // Validate the Post in the database
@@ -269,7 +262,6 @@ class PostResourceIT {
         restPostMockMvc
             .perform(
                 put(ENTITY_API_URL_ID, longCount.incrementAndGet())
-                    .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(om.writeValueAsBytes(post))
             )
@@ -287,7 +279,7 @@ class PostResourceIT {
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restPostMockMvc
-            .perform(put(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(post)))
+            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(post)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Post in the database
@@ -311,7 +303,6 @@ class PostResourceIT {
         restPostMockMvc
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedPost.getId())
-                    .with(csrf())
                     .contentType("application/merge-patch+json")
                     .content(om.writeValueAsBytes(partialUpdatedPost))
             )
@@ -340,7 +331,6 @@ class PostResourceIT {
         restPostMockMvc
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedPost.getId())
-                    .with(csrf())
                     .contentType("application/merge-patch+json")
                     .content(om.writeValueAsBytes(partialUpdatedPost))
             )
@@ -360,12 +350,7 @@ class PostResourceIT {
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restPostMockMvc
-            .perform(
-                patch(ENTITY_API_URL_ID, post.getId())
-                    .with(csrf())
-                    .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(post))
-            )
+            .perform(patch(ENTITY_API_URL_ID, post.getId()).contentType("application/merge-patch+json").content(om.writeValueAsBytes(post)))
             .andExpect(status().isBadRequest());
 
         // Validate the Post in the database
@@ -382,7 +367,6 @@ class PostResourceIT {
         restPostMockMvc
             .perform(
                 patch(ENTITY_API_URL_ID, longCount.incrementAndGet())
-                    .with(csrf())
                     .contentType("application/merge-patch+json")
                     .content(om.writeValueAsBytes(post))
             )
@@ -400,7 +384,7 @@ class PostResourceIT {
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restPostMockMvc
-            .perform(patch(ENTITY_API_URL).with(csrf()).contentType("application/merge-patch+json").content(om.writeValueAsBytes(post)))
+            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(om.writeValueAsBytes(post)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Post in the database
@@ -417,7 +401,7 @@ class PostResourceIT {
 
         // Delete the post
         restPostMockMvc
-            .perform(delete(ENTITY_API_URL_ID, post.getId()).with(csrf()).accept(MediaType.APPLICATION_JSON))
+            .perform(delete(ENTITY_API_URL_ID, post.getId()).accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 
         // Validate the database contains one less item

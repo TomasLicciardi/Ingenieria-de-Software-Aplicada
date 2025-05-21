@@ -1,110 +1,180 @@
 package com.jhipster.demo.blog.web.rest;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.jhipster.demo.blog.domain.User;
+import com.jhipster.demo.blog.repository.UserRepository;
 import com.jhipster.demo.blog.security.SecurityUtils;
-import java.security.Principal;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.jhipster.demo.blog.service.MailService;
+import com.jhipster.demo.blog.service.UserService;
+import com.jhipster.demo.blog.service.dto.AdminUserDTO;
+import com.jhipster.demo.blog.service.dto.PasswordChangeDTO;
+import com.jhipster.demo.blog.web.rest.errors.*;
+import com.jhipster.demo.blog.web.rest.vm.KeyAndPasswordVM;
+import com.jhipster.demo.blog.web.rest.vm.ManagedUserVM;
+import jakarta.validation.Valid;
+import java.util.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+/**
+ * REST controller for managing the current user's account.
+ */
 @RestController
 @RequestMapping("/api")
 public class AccountResource {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AccountResource.class);
-
     private static class AccountResourceException extends RuntimeException {
-
-        private static final long serialVersionUID = 1L;
 
         private AccountResourceException(String message) {
             super(message);
         }
     }
 
+    private static final Logger LOG = LoggerFactory.getLogger(AccountResource.class);
+
+    private final UserRepository userRepository;
+
+    private final UserService userService;
+
+    private final MailService mailService;
+
+    public AccountResource(UserRepository userRepository, UserService userService, MailService mailService) {
+        this.userRepository = userRepository;
+        this.userService = userService;
+        this.mailService = mailService;
+    }
+
+    /**
+     * {@code POST  /register} : register the user.
+     *
+     * @param managedUserVM the managed user View Model.
+     * @throws InvalidPasswordException {@code 400 (Bad Request)} if the password is incorrect.
+     * @throws EmailAlreadyUsedException {@code 400 (Bad Request)} if the email is already used.
+     * @throws LoginAlreadyUsedException {@code 400 (Bad Request)} if the login is already used.
+     */
+    @PostMapping("/register")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void registerAccount(@Valid @RequestBody ManagedUserVM managedUserVM) {
+        if (isPasswordLengthInvalid(managedUserVM.getPassword())) {
+            throw new InvalidPasswordException();
+        }
+        User user = userService.registerUser(managedUserVM, managedUserVM.getPassword());
+        mailService.sendActivationEmail(user);
+    }
+
+    /**
+     * {@code GET  /activate} : activate the registered user.
+     *
+     * @param key the activation key.
+     * @throws RuntimeException {@code 500 (Internal Server Error)} if the user couldn't be activated.
+     */
+    @GetMapping("/activate")
+    public void activateAccount(@RequestParam(value = "key") String key) {
+        Optional<User> user = userService.activateRegistration(key);
+        if (!user.isPresent()) {
+            throw new AccountResourceException("No user was found for this activation key");
+        }
+    }
+
     /**
      * {@code GET  /account} : get the current user.
      *
-     * @param principal the current user; resolves to {@code null} if not authenticated.
      * @return the current user.
-     * @throws AccountResourceException {@code 500 (Internal Server Error)} if the user couldn't be returned.
+     * @throws RuntimeException {@code 500 (Internal Server Error)} if the user couldn't be returned.
      */
     @GetMapping("/account")
-    public UserVM getAccount(Principal principal) {
-        if (principal instanceof AbstractAuthenticationToken) {
-            return getUserFromAuthentication((AbstractAuthenticationToken) principal);
-        } else {
+    public AdminUserDTO getAccount() {
+        return userService
+            .getUserWithAuthorities()
+            .map(AdminUserDTO::new)
+            .orElseThrow(() -> new AccountResourceException("User could not be found"));
+    }
+
+    /**
+     * {@code POST  /account} : update the current user information.
+     *
+     * @param userDTO the current user information.
+     * @throws EmailAlreadyUsedException {@code 400 (Bad Request)} if the email is already used.
+     * @throws RuntimeException {@code 500 (Internal Server Error)} if the user login wasn't found.
+     */
+    @PostMapping("/account")
+    public void saveAccount(@Valid @RequestBody AdminUserDTO userDTO) {
+        String userLogin = SecurityUtils.getCurrentUserLogin()
+            .orElseThrow(() -> new AccountResourceException("Current user login not found"));
+        Optional<User> existingUser = userRepository.findOneByEmailIgnoreCase(userDTO.getEmail());
+        if (existingUser.isPresent() && (!existingUser.orElseThrow().getLogin().equalsIgnoreCase(userLogin))) {
+            throw new EmailAlreadyUsedException();
+        }
+        Optional<User> user = userRepository.findOneByLogin(userLogin);
+        if (!user.isPresent()) {
             throw new AccountResourceException("User could not be found");
+        }
+        userService.updateUser(
+            userDTO.getFirstName(),
+            userDTO.getLastName(),
+            userDTO.getEmail(),
+            userDTO.getLangKey(),
+            userDTO.getImageUrl()
+        );
+    }
+
+    /**
+     * {@code POST  /account/change-password} : changes the current user's password.
+     *
+     * @param passwordChangeDto current and new password.
+     * @throws InvalidPasswordException {@code 400 (Bad Request)} if the new password is incorrect.
+     */
+    @PostMapping(path = "/account/change-password")
+    public void changePassword(@RequestBody PasswordChangeDTO passwordChangeDto) {
+        if (isPasswordLengthInvalid(passwordChangeDto.getNewPassword())) {
+            throw new InvalidPasswordException();
+        }
+        userService.changePassword(passwordChangeDto.getCurrentPassword(), passwordChangeDto.getNewPassword());
+    }
+
+    /**
+     * {@code POST   /account/reset-password/init} : Send an email to reset the password of the user.
+     *
+     * @param mail the mail of the user.
+     */
+    @PostMapping(path = "/account/reset-password/init")
+    public void requestPasswordReset(@RequestBody String mail) {
+        Optional<User> user = userService.requestPasswordReset(mail);
+        if (user.isPresent()) {
+            mailService.sendPasswordResetMail(user.orElseThrow());
+        } else {
+            // Pretend the request has been successful to prevent checking which emails really exist
+            // but log that an invalid attempt has been made
+            LOG.warn("Password reset requested for non existing mail");
         }
     }
 
     /**
-     * {@code GET  /authenticate} : check if the user is authenticated.
+     * {@code POST   /account/reset-password/finish} : Finish to reset the password of the user.
      *
-     * @return the {@link ResponseEntity} with status {@code 204 (No Content)},
-     * or with status {@code 401 (Unauthorized)} if not authenticated.
+     * @param keyAndPassword the generated key and the new password.
+     * @throws InvalidPasswordException {@code 400 (Bad Request)} if the password is incorrect.
+     * @throws RuntimeException {@code 500 (Internal Server Error)} if the password could not be reset.
      */
-    @GetMapping("/authenticate")
-    public ResponseEntity<Void> isAuthenticated(Principal principal) {
-        LOG.debug("REST request to check if the current user is authenticated");
-        return ResponseEntity.status(principal == null ? HttpStatus.UNAUTHORIZED : HttpStatus.NO_CONTENT).build();
-    }
-
-    private static class UserVM {
-
-        private String login;
-        private Set<String> authorities;
-        private Map<String, Object> details;
-
-        UserVM(String login, Set<String> authorities, Map<String, Object> details) {
-            this.login = login;
-            this.authorities = authorities;
-            this.details = details;
+    @PostMapping(path = "/account/reset-password/finish")
+    public void finishPasswordReset(@RequestBody KeyAndPasswordVM keyAndPassword) {
+        if (isPasswordLengthInvalid(keyAndPassword.getNewPassword())) {
+            throw new InvalidPasswordException();
         }
+        Optional<User> user = userService.completePasswordReset(keyAndPassword.getNewPassword(), keyAndPassword.getKey());
 
-        public boolean isActivated() {
-            return true;
-        }
-
-        public Set<String> getAuthorities() {
-            return authorities;
-        }
-
-        public String getLogin() {
-            return login;
-        }
-
-        @JsonAnyGetter
-        public Map<String, Object> getDetails() {
-            return details;
+        if (!user.isPresent()) {
+            throw new AccountResourceException("No user was found for this reset key");
         }
     }
 
-    private static UserVM getUserFromAuthentication(AbstractAuthenticationToken authToken) {
-        Map<String, Object> attributes;
-        if (authToken instanceof JwtAuthenticationToken) {
-            attributes = ((JwtAuthenticationToken) authToken).getTokenAttributes();
-        } else if (authToken instanceof OAuth2AuthenticationToken) {
-            attributes = ((OAuth2AuthenticationToken) authToken).getPrincipal().getAttributes();
-        } else {
-            throw new IllegalArgumentException("AuthenticationToken is not OAuth2 or JWT!");
-        }
-
-        return new UserVM(
-            authToken.getName(),
-            authToken.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toSet()),
-            SecurityUtils.extractDetailsFromTokenAttributes(attributes)
+    private static boolean isPasswordLengthInvalid(String password) {
+        return (
+            StringUtils.isEmpty(password) ||
+            password.length() < ManagedUserVM.PASSWORD_MIN_LENGTH ||
+            password.length() > ManagedUserVM.PASSWORD_MAX_LENGTH
         );
     }
 }

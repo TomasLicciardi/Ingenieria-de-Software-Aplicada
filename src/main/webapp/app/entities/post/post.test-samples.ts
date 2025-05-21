@@ -6,27 +6,27 @@ export const sampleWithRequiredData: IPost = {
   id: 8730,
   title: 'lawful above unless',
   content: '../fake-data/blob/hipster.txt',
-  date: dayjs('2025-05-19T00:31'),
+  date: dayjs('2025-05-20T01:57'),
 };
 
 export const sampleWithPartialData: IPost = {
   id: 28272,
   title: 'unless or supportive',
   content: '../fake-data/blob/hipster.txt',
-  date: dayjs('2025-05-19T14:29'),
+  date: dayjs('2025-05-20T15:55'),
 };
 
 export const sampleWithFullData: IPost = {
   id: 9917,
   title: 'clearly darn icy',
   content: '../fake-data/blob/hipster.txt',
-  date: dayjs('2025-05-19T06:29'),
+  date: dayjs('2025-05-20T07:54'),
 };
 
 export const sampleWithNewData: NewPost = {
   title: 'willfully settler',
   content: '../fake-data/blob/hipster.txt',
-  date: dayjs('2025-05-19T00:13'),
+  date: dayjs('2025-05-20T01:39'),
   id: null,
 };
 

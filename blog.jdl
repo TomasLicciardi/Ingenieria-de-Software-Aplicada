@@ -2,7 +2,7 @@ application {
   config {
     baseName blog
     applicationType monolith
-    authenticationType oauth2
+    authenticationType jwt
     packageName com.jhipster.demo.blog
     prodDatabaseType mysql
     cacheProvider ehcache

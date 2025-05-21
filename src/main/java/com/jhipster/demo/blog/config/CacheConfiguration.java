@@ -45,6 +45,11 @@ public class CacheConfiguration {
     @Bean
     public JCacheManagerCustomizer cacheManagerCustomizer() {
         return cm -> {
+            createCache(cm, com.jhipster.demo.blog.repository.UserRepository.USERS_BY_LOGIN_CACHE);
+            createCache(cm, com.jhipster.demo.blog.repository.UserRepository.USERS_BY_EMAIL_CACHE);
+            createCache(cm, com.jhipster.demo.blog.domain.User.class.getName());
+            createCache(cm, com.jhipster.demo.blog.domain.Authority.class.getName());
+            createCache(cm, com.jhipster.demo.blog.domain.User.class.getName() + ".authorities");
             createCache(cm, com.jhipster.demo.blog.domain.Blog.class.getName());
             createCache(cm, com.jhipster.demo.blog.domain.Post.class.getName());
             // jhipster-needle-ehcache-add-entry
